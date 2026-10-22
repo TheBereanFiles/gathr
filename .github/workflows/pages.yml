@@ -9,8 +9,6 @@ permissions:
   contents: read
   pages: write
   id-token: write
-  # Creating a Pages site for the first time needs repository administration.
-  administration: write
 
 concurrency:
   group: pages
@@ -25,13 +23,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-        with:
-          # Create the Pages site on first run. GITHUB_TOKEN often cannot do this;
-          # if the step fails, the repo owner must enable Pages (GitHub Actions source).
-          enablement: true
 
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
