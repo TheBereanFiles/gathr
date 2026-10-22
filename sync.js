@@ -43,8 +43,7 @@ ${card||`<div class="card" style="background:#E4EDE5;color:#243438;border:1px so
 <div style="margin-top:12px;font-weight:600">📖 ${G.pass||'Passage TBA'}</div><button class="btn w" style="width:100%;margin-top:10px" onclick="readRef(G.pass)">📖 Read the passage (${tr})</button>
 <div class="sub" style="color:#596B70;margin:12px 0 6px">${base.going+cnt('going')} going · ${base.maybe+cnt('maybe')} maybe</div><div class="row">${[["going","I'm in"],["maybe","Maybe"],["no","Can't"]].map(r=>`<button class="btn ${rsv==r[0]?'w':'g'}" onclick="rs2('${r[0]}')">${r[1]}</button>`).join('')}</div></div>`}
 <div class="ql"><button onclick="leaveToday('home')"><span>🗓️</span>Next gathering</button><button onclick="readRef(G?G.pass:curPass())"><span>📖</span>Passage</button><button onclick="leaveToday('cal')"><span>📅</span>Calendar</button><button onclick="leaveToday('chat')"><span>💬</span>Chat</button></div>
-<button class="btn p" style="padding:15px" onclick="leaveToday('home')">Open app ›</button>
-<div class="sub" style="text-align:center;margin-top:12px"><a href="./widget.html" style="color:var(--acc)">At-a-glance page</a> · pin it as its own icon</div>`;status()}
+<button class="btn p" style="padding:15px" onclick="leaveToday('home')">Open app ›</button>`;status()}
 function leaveToday(v){$('#today').classList.remove('on');deep(v)}
 function deep(v){if(v=='cal')openCal();else if(v=='chat')go('stories');else if(v=='passage'){go('home');readRef(G?G.pass:curPass())}else if(v=='today'){rtoday();$('#today').classList.add('on')}else go('home')}
 const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
