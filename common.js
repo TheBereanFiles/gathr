@@ -1,6 +1,7 @@
 // Gathr shared helpers: synced store (textdb.dev, no account), compression, access gate
 const GSTORE='https://textdb.dev/api/data/';
-const GID=new URLSearchParams(location.search).get('g')||localStorage.gathr_gid||'gathr-zk-m7Qx2pLk-v1';
+const _qs=new URLSearchParams(location.search);
+const GID=_qs.get('join')||_qs.get('g')||localStorage.gathr_gid||'gathr-zk-m7Qx2pLk-v1';
 localStorage.gathr_gid=GID;
 const GURL=GSTORE+encodeURIComponent(GID);
 async function gz(s){const b=await new Response(new Blob([s]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer();let o='';new Uint8Array(b).forEach(c=>o+=String.fromCharCode(c));return 'gz:'+btoa(o)}

@@ -16,7 +16,7 @@ rs2=function(v){rsv=v;R[me()]=v;rh();rtoday();toast(v=='going'?'See you there! �
 function applyDoc(d){let ch_=false;for(const k in K){const e=d[k];if(e&&e.ts>ts[k]){try{K[k][1](JSON.parse(e.v));last[k]=JSON.stringify(K[k][0]());ts[k]=e.ts;ch_=true}catch(x){}}}return ch_}
 function curDoc(){const d={};for(const k in K)d[k]={ts:ts[k],v:last[k]};return d}
 function myRole(){const m=gm.find(x=>x[0]==me());return m?m[1]:'Member'}
-let rolePinned=false;function rerender(){try{if(!rolePinned)viewer=myRole();rh();rf();rfe();rch();if($('#grp.on'))rg();if($('#thr.on')&&typeof ct!='undefined')rth();if($('#cal.on'))rcal();rtoday();$('#subt').textContent=titles[document.querySelector('nav button.on').dataset.t][1]}catch(e){console.warn(e)}}
+let rolePinned=false;function rerender(){try{if(!rolePinned)viewer=myRole();rh();rf();rfe();rch();if($('#grp.on'))rg();if($('#thr.on')&&typeof ct!='undefined')rth();if($('#cal.on'))rcal();rtoday();$('#subt').textContent=titles[document.querySelector('nav button.on').dataset.t][1];maybeEnterFromJoin()}catch(e){console.warn(e)}}
 function tick(){for(const k in K){const s=JSON.stringify(K[k][0]());if(s!==last[k]){last[k]=s;ts[k]=Date.now();dirty=true}}if(dirty){saveLocalDoc(curDoc());push()}}
 async function push(){if(pushing)return pushing;pushing=(async()=>{try{while(dirty){dirty=false;const rem=await storeGet();if(applyDoc(rem))rerender();const out=curDoc();for(const k in rem)if(!(k in out))out[k]=rem[k];await storePut(out);online=true}}catch(e){online=false;dirty=true}finally{pushing=null;status()}})();return pushing}
 async function poll(){if(pushing)return;try{const rem=await storeGet();online=true;if(applyDoc(rem)){saveLocalDoc(curDoc());rerender()}const missing=Object.keys(K).some(k=>!rem[k]||rem[k].ts<ts[k]);if(missing){dirty=true;push()}}catch(e){online=false}status();recheck()}
@@ -54,14 +54,17 @@ function showHint(){if(standalone||localStorage.gathr_nohint||$('#ihint'))return
  document.body.insertAdjacentHTML('beforeend',`<div id="ihint"><span style="font-size:22px">📲</span><div style="flex:1">${txt}</div>${bip?'<button class="ib" onclick="bip.prompt();bip=null;hideHint()">Install</button>':''}<button onclick="localStorage.gathr_nohint=1;hideHint()">✕</button></div>`)}
 function hideHint(){$('#ihint')&&$('#ihint').remove()}
 // ---- boot ----
+function openApp(){const q=new URLSearchParams(location.search).get('view');if(q)deep(q);else if(standalone)deep('today');setTimeout(showHint,1200)}
+let unlocked=false;
+function routeAfterGate(){unlocked=true;const joinId=new URLSearchParams(location.search).get('join');if(joinId&&!(me()&&gm.some(m=>m[0]==me()))){showJoinRequest();return}ensureName(openApp)}
+function enterApproved(){ensureName(openApp)}
+function maybeEnterFromJoin(){if(!unlocked||!new URLSearchParams(location.search).get('join'))return;const n=me();const member=!!(n&&gm.some(m=>m[0]==n));if(member){if(!document.getElementById('joinreq')&&localStorage.gathr_join_wait!=='1')return;localStorage.removeItem('gathr_join_wait');const el=document.getElementById('joinreq');if(el)el.remove();ensureName(openApp);return}if(localStorage.gathr_join_wait==='1'&&n&&!pend.some(p=>p[0]==n)){localStorage.removeItem('gathr_join_wait');showJoinRequest('That request was declined. You can ask again.')}}
 (async()=>{applyDoc(localDoc());rsv=R[me()]||null;rerender();
- const q=new URLSearchParams(location.search).get('view');
- const open=()=>{if(q)deep(q);else if(standalone)deep('today');setTimeout(showHint,1200)};
  try{const rem=await storeGet();online=true;applyDoc(rem);saveLocalDoc(curDoc());rerender();if(Object.keys(K).some(k=>!rem[k])){dirty=true;push()}}catch(e){online=false}
- gateCheck(()=>ACC,()=>{ensureName(open)});status();setInterval(tick,1000);setInterval(poll,3000)})();
+ gateCheck(()=>ACC,()=>{routeAfterGate()});status();setInterval(tick,1000);setInterval(poll,3000)})();
 
 function ensureName(done){if(me()){join();return done()}const t=$('#today');document.body.insertAdjacentHTML('beforeend',`<div id="namegate" style="position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px"><div style="max-width:340px;width:100%;text-align:center"><div style="font-size:40px">👋</div><h2 style="font:700 28px Fraunces,serif;margin:6px 0">Welcome to Gathr</h2><p class="sub">${gm.length?'What should your group call you?':'You\'re the first one here, so you\'ll be the group\'s owner (Creator). What\'s your name?'}</p><input id="nm" class="fi" placeholder="Your name" style="text-align:center;margin:10px 0"><button class="btn p" id="nmb">Continue</button></div></div>`);
  $('#nmb').onclick=()=>{const v=$('#nm').value.trim();if(!v)return;localStorage.gathr_name=v;$('#namegate').remove();join();done()}}
-function join(){const n=me();if(!n||gm.some(x=>x[0]==n))return rerender();gm.push([n,gm.length?'Member':'Creator']);tick();rerender();toast(gm.length==1?'You\'re the owner of this group':'Welcome, '+n)}
+function join(){const n=me();if(!n||gm.some(x=>x[0]==n))return rerender();if(new URLSearchParams(location.search).get('join'))return rerender();gm.push([n,gm.length?'Member':'Creator']);tick();rerender();toast(gm.length==1?'You\'re the owner of this group':'Welcome, '+n)}
 // keep the role-preview chips working (they set viewer directly)
 const _rg2=rg;rg=function(){const b=document.querySelector('#grb');_rg2();if(b&&myRole()=='Member'){const bn=b.querySelector('.banner');bn&&bn.remove()}if(b)b.querySelectorAll('.banner .chip').forEach(c=>c.addEventListener('click',()=>{rolePinned=true;rh();rf()}))};
