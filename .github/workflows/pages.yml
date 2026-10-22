@@ -9,6 +9,8 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  # Creating a Pages site for the first time needs repository administration.
+  administration: write
 
 concurrency:
   group: pages
