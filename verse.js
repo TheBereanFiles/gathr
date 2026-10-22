@@ -27,14 +27,14 @@ const TRN={BSB:'Berean Standard Bible',KJV:'King James Version',WEB:'World Engli
 async function load(p,want){const tries=[['h',HAO[want]||'BSB',want]];if(want!='BSB')tries.push(['h','BSB','BSB']);tries.push(['b',BAPI[want]||'web',(BAPI[want]||'web').toUpperCase()]);
  let err;for(const [s,t,lab] of tries){try{const o=s=='h'?await getHao(t,p):await getBapi(t,p);if(o.vs.length)return Object.assign({tr:lab},o)}catch(e){err=e}}throw err||new Error('none')}
 const css=document.createElement('style');css.textContent=`.vref{color:var(--acc,#165D63);font-weight:600;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px;cursor:pointer}
-#vsheet{position:fixed;inset:0;background:rgba(36,52,56,.45);z-index:60;display:none;align-items:flex-end;justify-content:center}#vsheet.on{display:flex}
-#vsheet .vb{background:#fff;width:100%;max-width:430px;max-height:78vh;border-radius:22px 22px 0 0;display:flex;flex-direction:column;box-shadow:0 -6px 24px rgba(22,52,56,.18);animation:vup .22s ease-out}
+#vsheet{position:fixed;top:0;left:0;right:0;bottom:var(--kb,0px);background:rgba(36,52,56,.45);z-index:60;display:none;align-items:flex-end;justify-content:center}#vsheet.on{display:flex}
+#vsheet .vb{background:#fff;width:100%;max-width:430px;max-height:min(78dvh,100%);border-radius:22px 22px 0 0;display:flex;flex-direction:column;box-shadow:0 -6px 24px rgba(22,52,56,.18);animation:vup .22s ease-out}
 @keyframes vup{from{transform:translateY(40px);opacity:.4}}#vsheet .vh{padding:14px 18px 10px;border-bottom:1px solid #E2E7E4;display:flex;align-items:flex-start;gap:10px}
 #vsheet .vt{flex:1}#vsheet h3{font:700 20px Fraunces,Georgia,serif;color:#243438;margin:0}#vsheet .vl{display:inline-block;margin-top:4px;background:#E4EDE5;color:#165D63;font:700 11px Inter,sans-serif;padding:3px 8px;border-radius:8px}
 #vsheet .vx{background:#E4EDE5;border:none;border-radius:50%;width:32px;height:32px;font-size:16px;color:#243438;cursor:pointer}
 #vsheet .vc{padding:14px 18px;overflow:auto;font:16px/1.65 Georgia,serif;color:#243438}#vsheet .vc sup{font:700 10px Inter,sans-serif;color:#165D63;margin-right:3px}
 #vsheet .vc .ch{font:700 12px Inter,sans-serif;color:#596B70;letter-spacing:.06em;margin:10px 0 4px;text-transform:uppercase}#vsheet .vn{font:13px Inter,sans-serif;color:#596B70;margin-top:10px}
-#vsheet .vf{padding:10px 18px calc(14px + env(safe-area-inset-bottom));border-top:1px solid #E2E7E4;display:flex;gap:8px}#vsheet .vf a,#vsheet .vf button{flex:1;text-align:center;padding:12px;border-radius:12px;font:700 14px Inter,sans-serif;text-decoration:none;cursor:pointer}
+#vsheet .vf{padding:10px 18px calc(14px + env(safe-area-inset-bottom));border-top:1px solid #E2E7E4;display:flex;gap:8px}html.kb #vsheet .vf{padding-bottom:12px}#vsheet .vf a,#vsheet .vf button{flex:1;text-align:center;padding:12px;border-radius:12px;font:700 14px Inter,sans-serif;text-decoration:none;cursor:pointer}
 #vsheet .vf a{background:#165D63;color:#fff}#vsheet .vf button{background:#fff;color:#165D63;border:1px solid #CFDDD1}
 #vsheet .sk{height:14px;background:#E4EDE5;border-radius:7px;margin:10px 0;animation:sk 1.2s infinite}@keyframes sk{50%{opacity:.5}}#vsheet .ve{background:#E4EDE5;border-radius:12px;padding:14px;font:14px Inter,sans-serif}`;
 document.head.appendChild(css);

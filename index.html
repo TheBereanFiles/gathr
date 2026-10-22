@@ -1,14 +1,14 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <title>Gathr</title><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#165D63"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="Gathr"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" href="icons/icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#FAF7F2;--card:#fff;--ink:#243438;--mute:#596B70;--acc:#165D63;--acc2:#F2B18A;--sage:#E4EDE5;--line:#E2E7E4}
-*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,system-ui,sans-serif;background:#EEF1EE;color:var(--ink);display:flex;justify-content:center}
-.app{width:100%;max-width:430px;min-height:100vh;background:var(--bg);position:relative;padding-bottom:84px}
-header{padding:18px 20px 10px;position:sticky;top:0;background:var(--bg);z-index:5}
+:root{--bg:#FAF7F2;--card:#fff;--ink:#243438;--mute:#596B70;--acc:#165D63;--acc2:#F2B18A;--sage:#E4EDE5;--line:#E2E7E4;--kb:0px;--nav-h:76px}
+*{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}body{font-family:Inter,system-ui,sans-serif;background:#EEF1EE;color:var(--ink);display:flex;justify-content:center;overflow:hidden}
+.app{width:100%;max-width:430px;height:100%;min-height:0;background:var(--bg);position:relative;display:flex;flex-direction:column;overflow:hidden;padding-bottom:var(--kb)}
+header{order:1;flex:none;padding:18px 20px 10px;background:var(--bg);z-index:5}
 h1{font-family:Fraunces,serif;font-size:28px}h2{font-family:Fraunces,serif;font-size:19px;margin:18px 0 10px}
 .sub{color:var(--mute);font-size:13px}.tag{display:inline-block;background:#E4EDE5;color:var(--acc);font-size:10px;font-weight:700;padding:3px 7px;border-radius:6px;letter-spacing:.5px;text-transform:uppercase}
-main{padding:0 16px}.screen{display:none}.screen.on{display:block;animation:f .25s}@keyframes f{from{opacity:0;transform:translateY(6px)}}
+main{order:2;flex:1;min-height:0;overflow:auto;padding:0 16px 12px;-webkit-overflow-scrolling:touch}.screen{display:none}.screen.on{display:block;animation:f .25s}@keyframes f{from{opacity:0;transform:translateY(6px)}}
 .card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(22,52,56,.06);border:1px solid var(--line)}
 .hero{background:#165D63;color:#fff;border:none}.hero .sub{color:#DCEAE7}.hero a{color:#fff}
 .hero h3{font-family:Fraunces,serif;font-size:22px;margin:6px 0}.row{display:flex;gap:10px;align-items:center}
@@ -25,27 +25,27 @@ main{padding:0 16px}.screen{display:none}.screen.on{display:block;animation:f .2
 .step h4{font-size:15px;margin-bottom:3px}.step p,.card p{font-size:13.5px;color:#596B70;line-height:1.5}
 .study{display:flex;gap:12px;align-items:center;cursor:pointer}.ic{width:50px;height:50px;border-radius:14px;display:grid;place-items:center;font-size:22px;flex:none}
 .wk{font-size:12px;color:var(--mute)}.arrow{margin-left:auto;color:var(--mute)}
-nav{position:fixed;bottom:0;width:100%;max-width:430px;background:#fff;border-top:1px solid var(--line);display:flex;padding:8px 4px calc(10px + env(safe-area-inset-bottom));z-index:9}
+nav{order:4;flex:none;position:relative;width:100%;background:#fff;border-top:1px solid var(--line);display:flex;padding:8px 4px calc(10px + env(safe-area-inset-bottom));z-index:9}html.kb nav{display:none}
 nav button{flex:1;background:none;border:none;font:500 11px Inter;color:var(--mute);display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
 nav button span{font-size:21px;filter:grayscale(1);opacity:.6}nav button.on{color:var(--acc);font-weight:700}nav button.on span{filter:none;opacity:1}
-.sheet{position:fixed;inset:0;background:rgba(36,52,56,.45);display:none;z-index:32;justify-content:center;align-items:flex-end}.sheet.on{display:flex}
-.sheet .in{background:var(--bg);width:100%;max-width:430px;max-height:85vh;overflow:auto;border-radius:24px 24px 0 0;padding:20px 18px 30px;animation:u .25s}@keyframes u{from{transform:translateY(40px)}}
+.sheet{position:fixed;top:0;left:0;right:0;bottom:var(--kb);background:rgba(36,52,56,.45);display:none;z-index:32;justify-content:center;align-items:flex-end}.sheet.on{display:flex}
+.sheet .in{background:var(--bg);width:100%;max-width:430px;max-height:min(85dvh,100%);overflow:auto;border-radius:24px 24px 0 0;padding:20px 18px calc(18px + env(safe-area-inset-bottom));animation:u .25s}@keyframes u{from{transform:translateY(40px)}}html.kb .sheet .in{padding-bottom:16px}
 .x{float:right;background:#eee;border:none;border-radius:50%;width:30px;height:30px;font-size:16px;cursor:pointer}
 .chat{min-height:200px}.me .bub{background:var(--acc);color:#fff;border-radius:14px 4px 14px 14px;margin-left:auto}.me{justify-content:flex-end}
-.inp{display:flex;gap:8px;margin:10px 0}.inp input{flex:1;border:1px solid var(--line);border-radius:22px;padding:11px 14px;font:14px Inter;background:#fff}
-.send{background:var(--acc);color:#fff;border:none;border-radius:50%;width:42px;font-size:18px;cursor:pointer}
+.inp{display:flex;gap:8px;margin:10px 0;align-items:center}.inp input{flex:1;min-width:0;border:1px solid var(--line);border-radius:22px;padding:11px 14px;font:16px Inter;background:#fff}
+.send{background:var(--acc);color:#fff;border:none;border-radius:50%;width:42px;height:42px;flex:none;display:grid;place-items:center;font-size:18px;cursor:pointer}
 .sug{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}.sug button{white-space:nowrap;background:#fff;border:1px solid var(--line);border-radius:16px;padding:7px 11px;font:12px Inter;cursor:pointer}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.her{cursor:pointer;margin:0}.her h4{font-size:14px;margin:4px 0}
 .lbl{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--acc);margin:12px 0 4px;letter-spacing:.5px}
 .ref{color:var(--acc);font-weight:600}.like{background:none;border:none;color:var(--mute);font:13px Inter;cursor:pointer;margin-top:8px}
 .banner{background:#E4EDE5;border:1px solid #CFDDD1;border-radius:12px;padding:8px 12px;font-size:12px;color:#243438;margin-bottom:12px}
-.ed{background:none;border:none;color:var(--mute);font-size:13px;cursor:pointer;padding:2px 4px}.fi{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;font:14px Inter;margin:4px 0 10px;background:#fff}.fl{font-size:12px;font-weight:600;color:var(--mute)}.hero a{color:#fff}
+.ed{background:none;border:none;color:var(--mute);font-size:13px;cursor:pointer;padding:2px 4px}.fi{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;font:16px Inter;margin:4px 0 10px;background:#fff}.fl{font-size:12px;font-weight:600;color:var(--mute)}.hero a{color:#fff}
 .yr{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.mm{background:#fff;border:1px solid var(--line);border-radius:12px;padding:6px;cursor:pointer}.mm b{font-size:12px;display:block;margin-bottom:3px}
 .mg{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;font-size:8px;text-align:center;color:var(--mute)}.mg span{position:relative;line-height:12px}.mg .ev{color:#fff;background:var(--acc);border-radius:50%}
 .bg{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}.bg .h{font-size:11px;color:var(--mute);font-weight:600}.bg button{aspect-ratio:1;border:1px solid var(--line);background:#fff;border-radius:10px;font:600 14px Inter;cursor:pointer;position:relative}
 .bg button.e::after{content:"";position:absolute;bottom:5px;left:50%;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:var(--acc)}.bg button.td{border:2px solid var(--ink)}.bg button.past{opacity:.45}
 .seg{display:flex;background:#E4EDE5;border-radius:12px;padding:3px;margin-bottom:12px}.seg button{flex:1;border:none;background:none;padding:8px;border-radius:10px;font:600 13px Inter;cursor:pointer}.seg button.on{background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.08)}
-.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#243438;color:#fff;padding:10px 16px;border-radius:20px;font-size:13px;opacity:0;transition:.3s;z-index:40;pointer-events:none}.toast.on{opacity:1}
+.toast{position:fixed;bottom:calc(var(--nav-h) + 16px + var(--kb));left:50%;transform:translateX(-50%);background:#243438;color:#fff;padding:10px 16px;border-radius:20px;font-size:13px;opacity:0;transition:.3s;z-index:40;pointer-events:none}.toast.on{opacity:1}html.kb .toast{bottom:calc(16px + var(--kb))}
 .chhead{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px 14px}
 .avs{display:flex}.avs .av{width:26px;height:26px;font-size:11px;margin-left:-7px;border:2px solid #fff}
 .live{font-size:12px;color:var(--acc);font-weight:600;margin:10px 2px 0;display:flex;align-items:center;gap:6px}.dot{width:8px;height:8px;border-radius:50%;background:#165D63;animation:pl 1.6s infinite}@keyframes pl{50%{opacity:.3}}
@@ -54,11 +54,13 @@ nav button span{font-size:21px;filter:grayscale(1);opacity:.6}nav button.on{colo
 .cm .tx{font-size:14px;line-height:1.45;margin-top:2px}.rep{font-size:12px;color:var(--acc);font-weight:600;margin-top:6px;background:none;border:none;cursor:pointer;padding:0}
 .story{background:#fff;border:1px solid var(--line);border-left:4px solid var(--acc2);border-radius:12px;padding:10px 12px;margin-top:6px}.story h4{font-family:Fraunces,serif;font-size:16px;margin:3px 0}.story p{font-size:13px;color:#596B70}
 .logi{background:#E4EDE5;border-radius:10px;padding:8px 10px;margin-top:6px;font-size:13px}.new{animation:fl 1.5s}@keyframes fl{from{background:#FCE4D6}}
-.comp{position:fixed;bottom:70px;width:100%;max-width:430px;left:50%;transform:translateX(-50%);background:var(--bg);padding:8px 12px;border-top:1px solid var(--line);z-index:8;display:none}.comp.on{display:block}
+.comp{order:3;flex:none;position:relative;width:100%;background:var(--bg);padding:8px 12px;border-top:1px solid var(--line);z-index:8;display:none}.comp.on{display:block}
 .comp .inp{margin:0}.tg{font:600 12px Inter;border:1px solid var(--line);background:#fff;border-radius:14px;padding:5px 10px;cursor:pointer;margin-bottom:6px}.tg.on{background:var(--acc2);border-color:var(--acc2)}
-.panel{position:fixed;top:0;bottom:0;width:100%;max-width:430px;left:50%;transform:translateX(100vw);background:var(--bg);z-index:25;transition:transform .3s;display:flex;flex-direction:column}.panel.on{transform:translateX(-50%)}
-.ph{padding:16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;background:#fff}.ph button{background:none;border:none;font-size:22px;cursor:pointer}
-.pb{flex:1;overflow:auto;padding:8px 14px}.pf{padding:10px 14px 24px;border-top:1px solid var(--line)}
+#stt{display:none;width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 12px;font:600 16px Inter;margin-bottom:6px;background:#fff}
+.panel{position:fixed;top:0;bottom:var(--kb);width:100%;max-width:430px;left:50%;transform:translateX(100vw);background:var(--bg);z-index:25;transition:transform .3s;display:flex;flex-direction:column}.panel.on{transform:translateX(-50%)}
+.ph{flex:none;padding:calc(16px + env(safe-area-inset-top)) 16px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;background:#fff}.ph button{background:none;border:none;font-size:22px;cursor:pointer}
+.pb{flex:1;min-height:0;overflow:auto;padding:8px 14px 12px;-webkit-overflow-scrolling:touch}.panel:not(:has(> .pf:not([hidden]))) > .pb{padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+.pf{flex:none;padding:10px 14px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--bg)}html.kb .pf,html.kb .panel:not(:has(> .pf:not([hidden]))) > .pb{padding-bottom:12px}
 .pill{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;text-transform:uppercase}.pub{background:#EEF1F2;color:#3F5257}.pri{background:#E4EDE5;color:var(--acc)}
 .ftopic{display:flex;justify-content:space-between;align-items:center;margin:14px 0 6px}
 </style></head><body><div class="app">
@@ -96,13 +98,13 @@ nav button span{font-size:21px;filter:grayscale(1);opacity:.6}nav button.on{colo
 <div class="live"><span class="dot"></span>Live · synced with everyone in your group</div>
 <button class="explore" onclick="openF()">🌍 Explore public forums ›</button>
 <div class="banner" style="margin-top:10px">Private to your group.</div>
-<div id="chfeed"></div><div style="height:120px"></div></section>
+<div id="chfeed"></div></section>
 </main>
 <nav id="nav"><button class="on" data-t="home"><span>🏠</span>This Week</button><button data-t="guide"><span>🧭</span>Host Guide</button><button data-t="studies"><span>📖</span>Studies</button><button data-t="ask"><span>✨</span>Ask</button><button data-t="stories"><span>💬</span>Chat</button></nav>
 <div class="sheet" id="sheet" onclick="if(event.target===this)closeS()"><div class="in"><button class="x" onclick="closeS()">✕</button><div id="sc"></div></div></div>
-<div class="comp" id="comp"><button class="tg" id="tgS" onclick="tgs()">📖 Share a story</button><input id="stt" placeholder="Story title" style="display:none;width:100%;border:1px solid var(--line);border-radius:12px;padding:9px 12px;font:600 14px Inter;margin-bottom:6px"><div class="inp"><input id="cmi" placeholder="Message # Our Gathering"><button class="send" onclick="cpost()">➤</button></div></div>
+<div class="comp" id="comp"><button class="tg" id="tgS" onclick="tgs()">📖 Share a story</button><input id="stt" placeholder="Story title"><div class="inp"><input id="cmi" placeholder="Message # Our Gathering"><button class="send" onclick="cpost()">➤</button></div></div>
 <div class="panel" id="thr"><div class="ph"><button onclick="closeP('thr')">‹</button><div><b>Thread</b><div class="sub"># Our Gathering</div></div></div><div class="pb" id="thb"></div><div class="pf"><div class="inp" style="margin:0"><input id="thi" placeholder="Reply in thread..."><button class="send" onclick="treply()">➤</button></div></div></div>
-<div class="panel" id="frm"><div class="ph"><button onclick="closeP('frm')">‹</button><div><b>🌍 Public Forums</b><div class="sub">Shared by every Gathr group</div></div></div><div class="pb" id="frb"></div></div>
+<div class="panel" id="frm"><div class="ph"><button onclick="closeP('frm')">‹</button><div><b>🌍 Public Forums</b><div class="sub">Shared by every Gathr group</div></div></div><div class="pb" id="frb"></div><div class="pf" id="frf" hidden></div></div>
 <div class="panel" id="grp"><div class="ph"><button onclick="closeP('grp')">‹</button><div><b>👥 My Gathering</b><div class="sub">Our Gathering · invite-only</div></div></div><div class="pb" id="grb"></div></div>
 <div class="panel" id="cal"><div class="ph"><button onclick="calBack()">‹</button><div style="flex:1"><b id="calT">Calendar</b><div class="sub" id="calS"></div></div></div><div class="pb" id="calB"></div></div>
 <div class="toast" id="toast"></div></div>
@@ -110,7 +112,7 @@ nav button span{font-size:21px;filter:grayscale(1);opacity:.6}nav button.on{colo
 const $=s=>document.querySelector(s);
 const titles={home:["This Week","Your gathering"],guide:["Host Guide","How to have a gathering"],studies:["Studies","Go through Scripture together"],ask:["Ask","Scripture helper (mockup)"],stories:["Chat","Your group, together"]};
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>go(b.dataset.t));
-function go(t){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===t));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));$('#title').textContent=titles[t][0];$('#subt').textContent=titles[t][1];scrollTo(0,0)}
+function go(t){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===t));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));$('#title').textContent=titles[t][0];$('#subt').textContent=titles[t][1];const sc=document.querySelector('main');if(sc)sc.scrollTop=0}
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),1800)}
 // food
 // feed
@@ -147,7 +149,7 @@ function rth(){const m=ch[ct];$('#thb').innerHTML=`<div class="cm">${av(m.u)}<di
 function treply(){const v=$('#thi').value.trim();if(!v)return;ch[ct].r.push([myName(),v]);$('#thi').value='';rth();rch();if(typeof tick=='function')tick()}
 function closeP(id){$('#'+id).classList.remove('on')}
 let sm=false;function tgs(){sm=!sm;$('#tgS').classList.toggle('on',sm);$('#stt').style.display=sm?'block':'none';$('#cmi').placeholder=sm?'Tell your story...':"Message # Our Gathering"}
-function cpost(){const v=$('#cmi').value.trim();if(!v)return;const m={u:myName(),t:"Just now",x:v,r:[]};if(sm)m.st=$('#stt').value.trim()||"My story";ch.push(m);$('#cmi').value='';$('#stt').value='';if(sm)tgs();rch(ch.length-1);scrollTo(0,1e6);if(typeof tick=='function')tick();toast('Sent to your group')}
+function cpost(){const v=$('#cmi').value.trim();if(!v)return;const m={u:myName(),t:"Just now",x:v,r:[]};if(sm)m.st=$('#stt').value.trim()||"My story";ch.push(m);$('#cmi').value='';$('#stt').value='';if(sm)tgs();rch(ch.length-1);const sc=document.querySelector('main');if(sc)sc.scrollTop=sc.scrollHeight;if(typeof tick=='function')tick();toast('Sent to your group')}
 const go0=go;go=function(t){go0(t);$('#comp').classList.toggle('on',t==='stories')};
 // forums (shared across groups on textdb)
 const FORUMS=[['disciple','🌱 Disciple-making'],['host','🏠 Hosting tips'],['gospel','🗣️ Gospel conversations'],['prayer','🙏 Prayer requests']];
@@ -156,8 +158,11 @@ function forumList(raw){return (raw&&Array.isArray(raw.posts))?raw.posts.filter(
 async function forumFetch(){const r=await fetch(GSTORE+'gathr-public-forums-v1?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('forum '+r.status);const t=(await r.text()).trim();let d=null;try{d=t?await ungz(t):null}catch(e){d=null}forumPosts=forumList(d);return forumPosts}
 function mergeForum(remote,local){const map=new Map();for(const p of [...remote,...local]){if(!p||!p.id)continue;const old=map.get(p.id);if(!old){map.set(p.id,{...p,r:[...(p.r||[])]});continue}const rs=[...(old.r||[])];for(const rep of (p.r||[])){if(rep&&!rs.some(x=>x&&x.u===rep.u&&x.x===rep.x&&x.t===rep.t))rs.push(rep)}map.set(p.id,{...old,r:rs})}return [...map.values()]}
 async function forumSave(){const local=forumPosts.slice();const r0=await fetch(GSTORE+'gathr-public-forums-v1?t='+Date.now(),{cache:'no-store'});if(!r0.ok)throw Error('forum '+r0.status);const t=(await r0.text()).trim();let remote=[];try{remote=forumList(t?await ungz(t):null)}catch(e){remote=[]}forumPosts=mergeForum(remote,local);const r=await fetch(GSTORE+'gathr-public-forums-v1',{method:'POST',headers:{'content-type':'text/plain'},body:await gz(JSON.stringify({ts:Date.now(),posts:forumPosts}))});if(!r.ok)throw Error('forum put '+r.status)}
-function rf2(){const b=$('#frb');if(!b)return;if(forumOpen){const p=forumPosts.find(x=>x.id===forumOpen);if(!p){forumOpen=null;return rf2()}
- b.innerHTML=`<button class="chip" onclick="forumOpen=null;rf2()">‹ Forums</button><div class="card" style="margin-top:10px"><span class="pill pub">Public</span> <b>${escH(p.title)}</b><div class="sub">${escH(p.u||'')} · ${escH(p.t||'')}</div><p style="margin-top:8px">${escH(p.x||'')}</p></div>`+(p.r||[]).map(r=>`<div class="msg">${av(r.u||'?')}<div class="bub"><b>${escH(r.u||'')}</b>${escH(r.x||'')}</div></div>`).join('')+`<div class="inp" style="margin-top:10px"><input id="frr" placeholder="Reply"><button class="send" onclick="forumReply(forumOpen)">➤</button></div>`;return}
+function rf2(){const b=$('#frb');const foot=$('#frf');if(!b)return;if(forumOpen){const p=forumPosts.find(x=>x.id===forumOpen);if(!p){forumOpen=null;return rf2()}
+ b.innerHTML=`<button class="chip" onclick="forumOpen=null;rf2()">‹ Forums</button><div class="card" style="margin-top:10px"><span class="pill pub">Public</span> <b>${escH(p.title)}</b><div class="sub">${escH(p.u||'')} · ${escH(p.t||'')}</div><p style="margin-top:8px">${escH(p.x||'')}</p></div>`+(p.r||[]).map(r=>`<div class="msg">${av(r.u||'?')}<div class="bub"><b>${escH(r.u||'')}</b>${escH(r.x||'')}</div></div>`).join('');
+ if(foot){foot.hidden=false;foot.innerHTML=`<div class="inp" style="margin:0"><input id="frr" placeholder="Reply"><button class="send" onclick="forumReply(forumOpen)">➤</button></div>`}
+ b.scrollTop=b.scrollHeight;return}
+ if(foot){foot.hidden=true;foot.innerHTML=''}
  b.innerHTML=`<div class="banner">Public forums are shared by every Gathr group. Anyone with the app can read and post.</div>`+FORUMS.map(([id,name])=>{const list=forumPosts.filter(p=>p.forum===id).slice(-15);
   return `<div class="ftopic"><b>${name}</b></div>`+(list.length?list.map(p=>{const idx=forumPosts.indexOf(p);return `<div class="card" style="margin-bottom:8px;cursor:pointer" onclick="forumOpen=forumPosts[${idx}].id;rf2()"><span class="pill pub">Public</span> <span class="sub">${escH(p.u||'')}</span><div style="font-size:14px;font-weight:600;margin-top:5px">${escH(p.title||'')}</div><div class="sub" style="margin-top:4px">💬 ${(p.r||[]).length} repl${(p.r||[]).length===1?'y':'ies'}</div></div>`}).join(''):'<div class="card sub" style="margin-bottom:8px">No posts yet. Be the first to post.</div>')+`<div class="card"><input class="fi" id="ft${id}" placeholder="Title"><input class="fi" id="fx${id}" placeholder="Write a post"><button class="btn p" onclick="forumPost('${id}')">Post</button></div>`}).join('')}
 async function forumPost(id){const titleEl=document.getElementById('ft'+id),bodyEl=document.getElementById('fx'+id);const title=(titleEl&&titleEl.value||'').trim(),body=(bodyEl&&bodyEl.value||'').trim();if(!body)return toast('Write a post first');const mine={id:'p'+Date.now(),forum:id,u:myName(),title:title||'Post',x:body,t:new Date().toLocaleString(),r:[]};try{await forumFetch();forumPosts.push(mine);await forumSave();rf2();toast('Posted to the forum')}catch(e){toast('Could not post. Try again.')}}
@@ -198,11 +203,11 @@ function sw(v){if(!canMan())return toast('Only admins can change this');who=v;rg
 function openG(){rg();$('#grp').classList.add('on')}
 function showJoinRequest(msg){
   let el=document.getElementById('joinreq');
-  if(!el){el=document.createElement('div');el.id='joinreq';el.style.cssText='position:fixed;inset:0;z-index:80;background:#FAF7F2;overflow:auto;display:flex;align-items:center;justify-content:center;padding:24px';document.body.appendChild(el)}
+  if(!el){el=document.createElement('div');el.id='joinreq';el.style.cssText='position:fixed;top:0;left:0;right:0;bottom:var(--kb,0px);z-index:80;background:#FAF7F2;overflow:auto;display:flex;align-items:safe center;justify-content:center;box-sizing:border-box;padding:calc(24px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom))';document.body.appendChild(el)}
   const n=localStorage.gathr_name||'';
   const waiting=localStorage.gathr_join_wait==='1'&&n&&pend.some(p=>p[0]==n);
   const faces=gm.slice(0,4).map(m=>av(m[0])).join('');
-  el.innerHTML=`<div class="card" style="text-align:center;padding:24px 16px;margin:0;max-width:360px;width:100%"><div class="avs" style="justify-content:center;margin-bottom:10px">${faces}</div><span class="pill pri">Private · invite-only</span><h2 style="margin:10px 0 4px">Our Gathering</h2><p class="sub">${gm.length?gm.length+' member'+(gm.length==1?'':'s')+' · someone invited you':'Someone invited you to this gathering'}</p><p style="margin:12px 0">We share a meal, open the Scripture together, and pray. Come as you are.</p>${msg?`<p id="jmsg" style="color:#b3261e;font-weight:600;margin-bottom:10px">${escH(msg)}</p>`:''}${waiting?`<p><b>Request sent, ${escH(n)}.</b></p><p class="sub" style="margin-top:8px">An admin will approve you. This page opens the gathering when you're in. The location and chat stay hidden until then.</p>`:`<input id="jn" placeholder="Your name" value="${escH(n)}" style="width:100%;border:1px solid var(--line);border-radius:12px;padding:11px;font:14px Inter;margin-bottom:10px"><button class="btn p" onclick="submitJoin()">Request to join</button><p class="sub" style="margin-top:10px">An admin will approve your request. You'll see the location and chat once you're in.</p>`}</div>`;
+  el.innerHTML=`<div class="card" style="text-align:center;padding:24px 16px;margin:0;max-width:360px;width:100%"><div class="avs" style="justify-content:center;margin-bottom:10px">${faces}</div><span class="pill pri">Private · invite-only</span><h2 style="margin:10px 0 4px">Our Gathering</h2><p class="sub">${gm.length?gm.length+' member'+(gm.length==1?'':'s')+' · someone invited you':'Someone invited you to this gathering'}</p><p style="margin:12px 0">We share a meal, open the Scripture together, and pray. Come as you are.</p>${msg?`<p id="jmsg" style="color:#b3261e;font-weight:600;margin-bottom:10px">${escH(msg)}</p>`:''}${waiting?`<p><b>Request sent, ${escH(n)}.</b></p><p class="sub" style="margin-top:8px">An admin will approve you. This page opens the gathering when you're in. The location and chat stay hidden until then.</p>`:`<input id="jn" placeholder="Your name" value="${escH(n)}" style="width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:12px;padding:11px;font:16px Inter;margin-bottom:10px"><button class="btn p" onclick="submitJoin()">Request to join</button><p class="sub" style="margin-top:10px">An admin will approve your request. You'll see the location and chat once you're in.</p>`}</div>`;
 }
 function submitJoin(){
   const input=document.getElementById('jn');
