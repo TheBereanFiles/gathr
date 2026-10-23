@@ -8,13 +8,15 @@ const K={
  gm:[()=>gm,v=>{gm=v}], pend:[()=>pend,v=>{pend=v}], who:[()=>who,v=>{who=v}],
  gn:[()=>groupName,v=>{groupName=String(v==null?'':v).slice(0,60)}],
  study:[()=>[curStudy,curWeek],v=>{if(Array.isArray(v)){curStudy=v[0]|0;curWeek=v[1]|0}}],
- rsvp:[()=>R,v=>{R=v;rsv=R[me()]||null}], acc:[()=>ACC,v=>{ACC=v;if(GID===OWNER_GID)saveAppAcc(ACC)}]
+ rsvp:[()=>R,v=>{R=v;rsv=R[me()]||null}],
+ pray:[()=>prayers,v=>{prayers=typeof normPray=='function'?normPray(v):[]}],
+ acc:[()=>ACC,v=>{ACC=v;if(GID===OWNER_GID)saveAppAcc(ACC)}]
 };
 const SEED={};for(const k in K)SEED[k]=JSON.stringify(K[k][0]());
 const last={},ts={};for(const k in K){last[k]=SEED[k];ts[k]=1}
 let online=false,pushing=null,dirty=false;
 function cnt(v){return Object.values(R).filter(x=>x==v).length}
-rs2=function(v){rsv=v;R[me()]=v;rh();toast(v=='going'?'See you there! 🙌':v=='maybe'?'Marked as maybe':"We'll miss you. Let us know how to pray.");tick()};
+rs2=function(v){rsv=v;R[me()]=v;rh();toast(v=='going'?'See you there! 🙌':v=='maybe'?'Marked as maybe':"We'll miss you. Let us know how to pray.");tick();if(v=='no'&&typeof offerPrayer=='function')offerPrayer()};
 function applyDoc(d){let ch_=false;for(const k in K){const e=d[k];if(e&&e.ts>ts[k]){try{K[k][1](JSON.parse(e.v));last[k]=JSON.stringify(K[k][0]());ts[k]=e.ts;ch_=true}catch(x){}}}return ch_}
 function curDoc(){const d={};for(const k in K)d[k]={ts:ts[k],v:last[k]};return d}
 function myRole(){const m=gm.find(x=>x[0]==me());return m?m[1]:'Member'}
@@ -24,9 +26,9 @@ function isMember(){const n=me();return !!(n&&gm.some(m=>m[0]==n))}
 function mayWrite(){if(!GID)return false;if(membershipWrite||isMember()||justCreated||JOIN_ID)return true;return false}
 function armMembershipWrite(){membershipWrite=true}
 function syncGroupList(){if(!GID||!groupSynced||departing)return;if(isMember()){rememberGroup(GID,groupName||'Our Gathering',hostName());localStorage.gathr_gid=GID;if(typeof unseal=='function')unseal();return}if(justCreated||JOIN_ID||!unlocked)return;departCurrentGroup()}
-function rerender(){try{if(!rolePinned)viewer=myRole();if(typeof paintGroup=='function')paintGroup();const outsider=!!(GID&&groupSynced&&!isMember()&&!justCreated);if(outsider){for(const id of ['hero','food','feed','upc','chfeed','grb','calB','thb']){const el=document.getElementById(id);if(el)el.innerHTML=''}}else{rh();rf();rfe();rch();if($('#grp.on'))rg();if($('#thr.on')&&typeof ct!='undefined')rth();if($('#cal.on'))rcal()}const nb=document.querySelector('nav button.on');if(nb&&titles[nb.dataset.t])$('#subt').textContent=titles[nb.dataset.t][1];syncGroupList();maybeEnterFromJoin()}catch(e){console.warn(e)}}
+function rerender(){try{if(!rolePinned)viewer=myRole();if(typeof paintGroup=='function')paintGroup();const outsider=!!(GID&&groupSynced&&!isMember()&&!justCreated);if(outsider){for(const id of ['hero','food','feed','upc','chfeed','grb','calB','thb','prayweek','prayB']){const el=document.getElementById(id);if(el)el.innerHTML=''}}else{rh();rf();rfe();rch();if($('#grp.on'))rg();if($('#thr.on')&&typeof ct!='undefined')rth();if($('#cal.on'))rcal();if($('#pray.on')&&typeof rpray=='function')rpray()}const nb=document.querySelector('nav button.on');if(nb&&titles[nb.dataset.t])$('#subt').textContent=titles[nb.dataset.t][1];syncGroupList();maybeEnterFromJoin()}catch(e){console.warn(e)}}
 function tick(){for(const k in K){const s=JSON.stringify(K[k][0]());if(s!==last[k]){last[k]=s;ts[k]=Date.now();dirty=true}}if(dirty&&groupSynced){saveLocalDoc(curDoc());if(mayWrite())push()}}
-function needsPush(rem){if(!rem)return false;return Object.keys(K).some(k=>{if(k==='gn'&&!groupName&&Object.keys(rem).length)return false;return !rem[k]||rem[k].ts<ts[k]})}
+function needsPush(rem){if(!rem)return false;return Object.keys(K).some(k=>{if(k==='gn'&&!groupName&&Object.keys(rem).length)return false;if(k==='pray'&&!(prayers&&prayers.length)&&Object.keys(rem).length&&!rem.pray)return false;return !rem[k]||rem[k].ts<ts[k]})}
 async function push(){if(pushing)return pushing;if(!mayWrite())return;pushing=(async()=>{try{while(dirty){dirty=false;if(!mayWrite())break;const rem=await storeGet();if(applyDoc(rem))rerender();const keepMine=isMember()||justCreated||membershipWrite;if(!keepMine){if(!JOIN_ID)break;for(const k in K){if(k==='pend'||!rem[k])continue;try{K[k][1](JSON.parse(rem[k].v));last[k]=JSON.stringify(K[k][0]());ts[k]=rem[k].ts}catch(x){}}}const out=curDoc();if(!keepMine){for(const k in K){if(k==='pend')continue;if(rem[k])out[k]=rem[k]}}for(const k in rem)if(!(k in out))out[k]=rem[k];await storePut(out);online=true}}catch(e){online=false;dirty=true}finally{pushing=null;status()}})();return pushing}
 function mayBackfill(rem){return !!(rem&&me()&&gm.some(m=>m[0]==me())&&needsPush(rem))}
 async function poll(){if(!GID||pushing||document.documentElement.classList.contains('locked'))return;try{const rem=await storeGet();online=true;groupSynced=true;if(applyDoc(rem)){saveLocalDoc(curDoc());rerender()}if(mayBackfill(rem)){tick();if(!dirty){dirty=true;saveLocalDoc(curDoc());push()}}}catch(e){online=false}status();recheck();maybeRefreshAcc()}
@@ -35,7 +37,7 @@ function recheck(){gateCheck(()=>readAppAcc(),null)}
 let accChecked=0;
 async function refreshAppAcc(){if(GID===OWNER_GID){saveAppAcc(ACC);return readAppAcc()}try{const r=await fetch(GSTORE+encodeURIComponent(OWNER_GID)+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return readAppAcc();const t=(await r.text()).trim();if(!t)return readAppAcc();const doc=await ungz(t);if(doc&&doc.acc&&doc.acc.v){const acc=JSON.parse(doc.acc.v);if(acc&&Array.isArray(acc.codes)&&acc.codes.length)saveAppAcc(acc)}}catch(e){}return readAppAcc()}
 async function maybeRefreshAcc(){const now=Date.now();if(now-accChecked<30000)return;accChecked=now;const before=localStorage.gathr_app_acc||'';await refreshAppAcc();if((localStorage.gathr_app_acc||'')!==before)recheck()}
-async function resetSample(){if(!GID)return;if(!confirm('Reset group data? This clears gatherings, food, chat, RSVPs, saved spots and pending requests on every phone. Members, the group name, and access codes stay.'))return;const now=Date.now();for(const k in K){if(k=='acc'||k=='gm'||k=='gn')continue;K[k][1](JSON.parse(SEED[k]));last[k]=SEED[k];ts[k]=now}R={};rsv=null;last.rsvp=JSON.stringify(R);dirty=true;saveLocalDoc(curDoc());rerender();await push();toast('Group data reset on all phones')}
+async function resetSample(){if(!GID)return;if(!confirm('Reset group data? This clears gatherings, food, chat, the prayer journal, RSVPs, saved spots and pending requests on every phone. Members, the group name, and access codes stay.'))return;const now=Date.now();for(const k in K){if(k=='acc'||k=='gm'||k=='gn')continue;K[k][1](JSON.parse(SEED[k]));last[k]=SEED[k];ts[k]=now}R={};rsv=null;last.rsvp=JSON.stringify(R);dirty=true;saveLocalDoc(curDoc());rerender();await push();toast('Group data reset on all phones')}
 // ---- access codes admin (inside My Gathering) ----
 const _rg=rg;rg=function(){_rg();const b=$('#grb');if(!b)return;
  const reset=`<div class="card"><b>🧹 Group data</b><div class="sub" style="margin:4px 0 10px">This group's store · <span id="syncdot"></span></div><button class="btn" style="width:100%;background:#fff;border:1px solid #e3b3a8;color:#b3261e" onclick="resetSample()">Reset this group's data (all phones)</button></div>`;
