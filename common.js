@@ -1,25 +1,42 @@
 // Gathr shared helpers: synced store (textdb.dev, no account), compression, access gate
 const GSTORE='https://textdb.dev/api/data/';
+const OWNER_GID='gathr-zk-m7Qx2pLk-v1';
 const _qs=new URLSearchParams(location.search);
-const GID=_qs.get('join')||_qs.get('g')||localStorage.gathr_gid||'gathr-zk-m7Qx2pLk-v1';
-localStorage.gathr_gid=GID;
-const GURL=GSTORE+encodeURIComponent(GID);
+const PREV_GID=localStorage.getItem('gathr_gid')||'';
+function validGid(s){return !!s&&/^[A-Za-z0-9_-]{6,80}$/.test(s)}
+const JOIN_ID=validGid(_qs.get('join')||'')?_qs.get('join'):'';
+const QUERY_G=validGid(_qs.get('g')||'')?_qs.get('g'):'';
+// Saved group stays the default. A phone with no saved group is not attached to the owner's group.
+const GID=JOIN_ID||QUERY_G||(validGid(PREV_GID)?PREV_GID:'');
+if(GID&&!JOIN_ID)localStorage.gathr_gid=GID;
+const GURL=GID?GSTORE+encodeURIComponent(GID):'';
+let groupName='';
+function appPath(){let path=location.pathname;if(path.endsWith('/index.html'))path=path.slice(0,-'index.html'.length);else if(!path.endsWith('/'))path+='/';return new URL(path,location.origin)}
+function newGroupId(){const b=new Uint8Array(16);if(crypto&&crypto.getRandomValues)crypto.getRandomValues(b);else for(let i=0;i<b.length;i++)b[i]=Math.floor(Math.random()*256);let o='';b.forEach(x=>o+=x.toString(16).padStart(2,'0'));return 'gathr-'+o}
+function groupList(){try{const a=JSON.parse(localStorage.gathr_groups||'[]');return Array.isArray(a)?a.filter(x=>x&&validGid(x.id)):[]}catch(e){return []}}
+function saveGroupList(a){try{localStorage.gathr_groups=JSON.stringify((a||[]).slice(0,30))}catch(e){}}
+function rememberGroup(id,name){if(!validGid(id))return;const nm=String(name||'Our Gathering').slice(0,60);const cur=groupList();const i=cur.findIndex(x=>x.id===id);if(i>=0&&cur[i].name===nm)return;if(i>=0)cur[i].name=nm;else cur.unshift({id,name:nm});saveGroupList(cur)}
+function migrateGroups(){if(groupList().length||!validGid(PREV_GID))return;rememberGroup(PREV_GID,'Our Gathering')}
+migrateGroups();
+function readDocs(){try{const o=JSON.parse(localStorage.gathr_docs||'{}');return o&&typeof o==='object'&&!Array.isArray(o)?o:{}}catch(e){return {}}}
+function localDoc(){if(!GID)return {};const docs=readDocs();if(Object.prototype.hasOwnProperty.call(docs,GID))return docs[GID]||{};const legacyGid=localStorage.getItem('gathr_doc_gid')||PREV_GID;if(GID===legacyGid){try{return JSON.parse(localStorage.gathr_doc||'{}')||{}}catch(e){return {}}}return {}}
+function saveLocalDoc(d){if(!GID)return;try{const docs=readDocs();docs[GID]=d;const keep=new Set(groupList().map(g=>g.id).concat(GID));const ids=Object.keys(docs);if(ids.length>30){for(const id of ids)if(!keep.has(id))delete docs[id]}localStorage.gathr_docs=JSON.stringify(docs)}catch(e){}try{localStorage.gathr_doc=JSON.stringify(d);localStorage.gathr_doc_gid=GID}catch(e){}}
 async function gz(s){const b=await new Response(new Blob([s]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer();let o='';new Uint8Array(b).forEach(c=>o+=String.fromCharCode(c));return 'gz:'+btoa(o)}
 async function ungz(s){if(!s||!s.startsWith('gz:'))return s?JSON.parse(s):null;const u=Uint8Array.from(atob(s.slice(3)),c=>c.charCodeAt(0));return JSON.parse(await new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream('gzip'))).text())}
-async function storeGet(){const r=await fetch(GURL+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('get '+r.status);const t=(await r.text()).trim();try{return await ungz(t)||{}}catch(e){return {}}}
-async function storePut(doc){const r=await fetch(GURL,{method:'POST',headers:{'content-type':'text/plain'},body:await gz(JSON.stringify(doc))});if(!r.ok)throw Error('put '+r.status)}
-function localDoc(){try{return JSON.parse(localStorage.gathr_doc||'{}')}catch(e){return {}}}
-function saveLocalDoc(d){try{localStorage.gathr_doc=JSON.stringify(d)}catch(e){}}
+async function storeGet(){if(!GURL)return {};const r=await fetch(GURL+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('get '+r.status);const t=(await r.text()).trim();try{return await ungz(t)||{}}catch(e){return {}}}
+async function storePut(doc){if(!GURL)return;const r=await fetch(GURL,{method:'POST',headers:{'content-type':'text/plain'},body:await gz(JSON.stringify(doc))});if(!r.ok)throw Error('put '+r.status)}
 async function sha(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s.trim()));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
-// Initial prototype code set by owner (hash only is stored)
+// App-wide gate. Hash only is stored. The owner group's code list is the source of truth.
 const SEED_ACC={codes:[{id:'c1',label:'Launch code',h:'3410a1824bd11c0b091f80e19067e975afd0a1a05d031f644067cea752b0a3c1',at:Date.parse('2026-10-22')}]};
 function activeHashes(acc){return ((acc||SEED_ACC).codes||[]).map(c=>c.h)}
+function readAppAcc(){try{const o=JSON.parse(localStorage.gathr_app_acc||'');if(o&&Array.isArray(o.codes)&&o.codes.length)return o}catch(e){}return JSON.parse(JSON.stringify(SEED_ACC))}
+function saveAppAcc(acc){try{if(acc&&Array.isArray(acc.codes)&&acc.codes.length)localStorage.gathr_app_acc=JSON.stringify(acc)}catch(e){}}
 // Gate: shows overlay until a valid code is entered. getAcc() returns current ACC object.
 function gateCheck(getAcc,onOpen){const h=localStorage.gathr_code_h;let g=document.getElementById('gate');
  if(h&&activeHashes(getAcc()).includes(h)){if(g)g.remove();document.documentElement.classList.remove('locked');onOpen&&onOpen();return true}
  const msg=h?'Access denied: this code is no longer active':'';if(h)localStorage.removeItem('gathr_code_h');
  document.documentElement.classList.add('locked');
- if(!g){g=document.createElement('div');g.id='gate';g.innerHTML=`<div class="gin"><div style="font-size:44px">🏡</div><h2>Gathr</h2><p>This gathering is private. Enter the access code your host shared with you.</p><input id="gcode" autocomplete="off" autocapitalize="off" placeholder="Access code"><button id="gbtn">Unlock</button><div id="gmsg"></div><small>Prototype light lock. Not real security.</small></div>`;document.body.appendChild(g);
+ if(!g){g=document.createElement('div');g.id='gate';g.innerHTML=`<div class="gin"><div style="font-size:44px">🏡</div><h2>Gathr</h2><p>Gathr is private. Enter the access code to open the app. An invite link then chooses which group you join.</p><input id="gcode" autocomplete="off" autocapitalize="off" placeholder="Access code"><button id="gbtn">Unlock</button><div id="gmsg"></div><small>Prototype light lock. Not real security.</small></div>`;document.body.appendChild(g);
   const go=async()=>{const v=document.getElementById('gcode').value;const hv=await sha(v);if(activeHashes(getAcc()).includes(hv)){localStorage.gathr_code_h=hv;gateCheck(getAcc,onOpen)}else{document.getElementById('gmsg').textContent='Access denied'}};
   g.querySelector('#gbtn').onclick=go;g.querySelector('#gcode').onkeydown=e=>{if(e.key=='Enter')go()}}
  document.getElementById('gmsg').textContent=msg;return false}
