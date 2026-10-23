@@ -4,18 +4,23 @@ const OWNER_GID='gathr-zk-m7Qx2pLk-v1';
 const _qs=new URLSearchParams(location.search);
 const PREV_GID=localStorage.getItem('gathr_gid')||'';
 function validGid(s){return !!s&&/^[A-Za-z0-9_-]{6,80}$/.test(s)}
-const JOIN_ID=validGid(_qs.get('join')||'')?_qs.get('join'):'';
-const QUERY_G=validGid(_qs.get('g')||'')?_qs.get('g'):'';
-// Saved group stays the default. A phone with no saved group is not attached to the owner's group.
-const GID=JOIN_ID||QUERY_G||(validGid(PREV_GID)?PREV_GID:'');
-if(GID&&!JOIN_ID)localStorage.gathr_gid=GID;
+// ?invite=app opens the app in no group, even if this phone already belongs to one.
+const INVITE_APP=(_qs.get('invite')||'')==='app';
+const JOIN_ID=!INVITE_APP&&validGid(_qs.get('join')||'')?_qs.get('join'):'';
+const _qg=!INVITE_APP&&validGid(_qs.get('g')||'')?_qs.get('g'):'';
+// An unknown ?g= is ignored. It must not load a group this phone does not already belong to.
+const QUERY_G=_qg&&groupList().some(g=>g.id===_qg)?_qg:'';
+const SAVED=!INVITE_APP&&validGid(PREV_GID)?PREV_GID:'';
+const GID=JOIN_ID||QUERY_G||SAVED||'';
+if(GID&&!JOIN_ID&&!INVITE_APP)localStorage.gathr_gid=GID;
 const GURL=GID?GSTORE+encodeURIComponent(GID):'';
 let groupName='';
 function appPath(){let path=location.pathname;if(path.endsWith('/index.html'))path=path.slice(0,-'index.html'.length);else if(!path.endsWith('/'))path+='/';return new URL(path,location.origin)}
 function newGroupId(){const b=new Uint8Array(16);if(crypto&&crypto.getRandomValues)crypto.getRandomValues(b);else for(let i=0;i<b.length;i++)b[i]=Math.floor(Math.random()*256);let o='';b.forEach(x=>o+=x.toString(16).padStart(2,'0'));return 'gathr-'+o}
 function groupList(){try{const a=JSON.parse(localStorage.gathr_groups||'[]');return Array.isArray(a)?a.filter(x=>x&&validGid(x.id)):[]}catch(e){return []}}
 function saveGroupList(a){try{localStorage.gathr_groups=JSON.stringify((a||[]).slice(0,30))}catch(e){}}
-function rememberGroup(id,name){if(!validGid(id))return;const nm=String(name||'Our Gathering').slice(0,60);const cur=groupList();const i=cur.findIndex(x=>x.id===id);if(i>=0&&cur[i].name===nm)return;if(i>=0)cur[i].name=nm;else cur.unshift({id,name:nm});saveGroupList(cur)}
+function rememberGroup(id,name,host){if(!validGid(id))return;const nm=String(name||'Our Gathering').slice(0,60);const cur=groupList();const i=cur.findIndex(x=>x.id===id);const prev=i>=0?cur[i]:null;const hn=host===undefined?(prev&&prev.host?String(prev.host).slice(0,40):''):String(host||'').slice(0,40);if(prev&&prev.name===nm&&String(prev.host||'')===hn)return;const row={id,name:nm};if(hn)row.host=hn;if(i>=0)cur[i]=row;else cur.unshift(row);saveGroupList(cur)}
+function forgetGroup(id){if(!validGid(id))return;saveGroupList(groupList().filter(g=>g.id!==id));try{const docs=readDocs();if(Object.prototype.hasOwnProperty.call(docs,id)){delete docs[id];localStorage.gathr_docs=JSON.stringify(docs)}}catch(e){}if(localStorage.getItem('gathr_gid')===id)localStorage.removeItem('gathr_gid');if(localStorage.getItem('gathr_doc_gid')===id){localStorage.removeItem('gathr_doc_gid');localStorage.removeItem('gathr_doc')}}
 function migrateGroups(){if(groupList().length||!validGid(PREV_GID))return;rememberGroup(PREV_GID,'Our Gathering')}
 migrateGroups();
 function readDocs(){try{const o=JSON.parse(localStorage.gathr_docs||'{}');return o&&typeof o==='object'&&!Array.isArray(o)?o:{}}catch(e){return {}}}
@@ -36,12 +41,14 @@ function gateCheck(getAcc,onOpen){const h=localStorage.gathr_code_h;let g=docume
  if(h&&activeHashes(getAcc()).includes(h)){if(g)g.remove();document.documentElement.classList.remove('locked');onOpen&&onOpen();return true}
  const msg=h?'Access denied: this code is no longer active':'';if(h)localStorage.removeItem('gathr_code_h');
  document.documentElement.classList.add('locked');
- if(!g){g=document.createElement('div');g.id='gate';g.innerHTML=`<div class="gin"><div style="font-size:44px">🏡</div><h2>Gathr</h2><p>Gathr is private. Enter the access code to open the app. An invite link then chooses which group you join.</p><input id="gcode" autocomplete="off" autocapitalize="off" placeholder="Access code"><button id="gbtn">Unlock</button><div id="gmsg"></div><small>Prototype light lock. Not real security.</small></div>`;document.body.appendChild(g);
+ if(!g){g=document.createElement('div');g.id='gate';g.innerHTML=`<div class="gin"><div style="font-size:44px">🏡</div><h2>Gathr</h2><p>Gathr is private. Enter the access code to open the app. A group invite then lets you ask to join that group.</p><input id="gcode" autocomplete="off" autocapitalize="off" placeholder="Access code"><button id="gbtn">Unlock</button><div id="gmsg"></div><small>Prototype light lock. Not real security.</small></div>`;document.body.appendChild(g);
   const go=async()=>{const v=document.getElementById('gcode').value;const hv=await sha(v);if(activeHashes(getAcc()).includes(hv)){localStorage.gathr_code_h=hv;gateCheck(getAcc,onOpen)}else{document.getElementById('gmsg').textContent='Access denied'}};
   g.querySelector('#gbtn').onclick=go;g.querySelector('#gcode').onkeydown=e=>{if(e.key=='Enter')go()}}
  document.getElementById('gmsg').textContent=msg;return false}
-const GATE_CSS=`html.locked body>*:not(#gate){visibility:hidden}#gate{position:fixed;top:0;left:0;right:0;bottom:var(--kb,0px);z-index:100;background:#FAF7F2;display:flex;align-items:safe center;justify-content:center;overflow:auto;box-sizing:border-box;padding:calc(24px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));font-family:Inter,system-ui,sans-serif;color:#243438}#gate .gin{max-width:340px;width:100%;text-align:center;background:#E4EDE5;border-radius:24px;padding:28px 22px;box-sizing:border-box}#gate h2{font:700 32px Fraunces,Georgia,serif;margin:6px 0}#gate p{color:#596B70;font-size:15px}#gate input{width:100%;box-sizing:border-box;padding:14px;border-radius:14px;border:1px solid #D6DEDB;font:600 17px Inter,sans-serif;text-align:center;margin:10px 0}#gate button{width:100%;padding:14px;border:none;border-radius:14px;background:#165D63;color:#fff;font:700 16px Inter,sans-serif}#gmsg{color:#b3261e;font-weight:600;min-height:22px;margin-top:12px}#gate small{color:#596B70}html.kb #gate,html.kb #namegate,html.kb #joinreq{padding-bottom:24px !important}`;
+const GATE_CSS=`html.locked body>*:not(#gate){visibility:hidden}html.sealed .app{visibility:hidden}html.sealed #toast{visibility:visible}#gate{position:fixed;top:0;left:0;right:0;bottom:var(--kb,0px);z-index:100;background:#FAF7F2;display:flex;align-items:safe center;justify-content:center;overflow:auto;box-sizing:border-box;padding:calc(24px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));font-family:Inter,system-ui,sans-serif;color:#243438}#gate .gin{max-width:340px;width:100%;text-align:center;background:#E4EDE5;border-radius:24px;padding:28px 22px;box-sizing:border-box}#gate h2{font:700 32px Fraunces,Georgia,serif;margin:6px 0}#gate p{color:#596B70;font-size:15px}#gate input{width:100%;box-sizing:border-box;padding:14px;border-radius:14px;border:1px solid #D6DEDB;font:600 17px Inter,sans-serif;text-align:center;margin:10px 0}#gate button{width:100%;padding:14px;border:none;border-radius:14px;background:#165D63;color:#fff;font:700 16px Inter,sans-serif}#gmsg{color:#b3261e;font-weight:600;min-height:22px;margin-top:12px}#gate small{color:#596B70}html.kb #gate,html.kb #namegate,html.kb #joinreq{padding-bottom:24px !important}`;
 document.head.insertAdjacentHTML('beforeend','<style>'+GATE_CSS+'</style>');document.documentElement.classList.add('locked');
+function unseal(){document.documentElement.classList.remove('sealed')}
+if(GID)document.documentElement.classList.add('sealed');
 if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
 let fullH=window.innerHeight;
 function syncKb(){
