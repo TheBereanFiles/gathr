@@ -78,7 +78,9 @@ async function answerRemoval(wipe){if(answerRemoval.busy||departing||!GID)return
 function enterApproved(){if(typeof unseal=='function')unseal();ensureName(openApp)}
 function maybeEnterFromJoin(){if(!unlocked||!JOIN_ID)return;const n=me();if(isMember()){rememberGroup(GID,groupName||'Our Gathering',hostName());localStorage.gathr_gid=GID;if(typeof unseal=='function')unseal();if(!document.getElementById('joinreq')&&localStorage.gathr_join_wait!=='1')return;localStorage.removeItem('gathr_join_wait');const el=document.getElementById('joinreq');if(el)el.remove();ensureName(openApp);return}if(localStorage.gathr_join_wait==='1'&&n&&!pend.some(p=>p[0]==n)){localStorage.removeItem('gathr_join_wait');showJoinRequest('That request was declined. You can ask again.')}}
 function takePendingGroup(){let p=null;try{p=JSON.parse(localStorage.gathr_pending_group||'null')}catch(e){p=null}if(!p||p.id!==GID)return;localStorage.removeItem('gathr_pending_group');justCreated=true;if(p.name)groupName=String(p.name).slice(0,60);if(p.person)localStorage.gathr_name=String(p.person).slice(0,40);rememberGroup(GID,groupName||'Our Gathering',p.person||'')}
-(async()=>{takePendingGroup();applyDoc(localDoc());rsv=R[me()]||null;rerender();
+(async()=>{
+ if(typeof GUEST!=='undefined'&&GUEST){document.documentElement.classList.remove('locked','sealed');document.documentElement.classList.add('guest');if(typeof showGuestCard==='function')showGuestCard(GUEST);return}
+ takePendingGroup();applyDoc(localDoc());rsv=R[me()]||null;rerender();
  if(!GID){await refreshAppAcc();accChecked=Date.now();gateCheck(()=>readAppAcc(),()=>{routeAfterGate()});return}
  try{const rem=await storeGet();online=true;groupSynced=true;applyDoc(rem);saveLocalDoc(curDoc());rerender()}catch(e){online=false}
  await refreshAppAcc();accChecked=Date.now();gateCheck(()=>readAppAcc(),()=>{routeAfterGate()})})();
