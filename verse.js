@@ -26,7 +26,7 @@ async function getBapi(t,p){const k='b|'+t+'|'+p.label;if(cache[k])return cache[
 const TRN={BSB:'Berean Standard Bible',KJV:'King James Version',WEB:'World English Bible',ASV:'American Standard Version',YLT:"Young's Literal Translation",DARBY:'Darby Translation',DRA:'Douay-Rheims'};
 async function load(p,want){const tries=[['h',HAO[want]||'BSB',want]];if(want!='BSB')tries.push(['h','BSB','BSB']);tries.push(['b',BAPI[want]||'web',(BAPI[want]||'web').toUpperCase()]);
  let err;for(const [s,t,lab] of tries){try{const o=s=='h'?await getHao(t,p):await getBapi(t,p);if(o.vs.length)return Object.assign({tr:lab},o)}catch(e){err=e}}throw err||new Error('none')}
-const css=document.createElement('style');css.textContent=`.vref{color:var(--acc,#165D63);font-weight:600;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px;cursor:pointer}
+const css=document.createElement('style');css.textContent=`.vref{color:var(--acc,#165D63);font-weight:600;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px;cursor:pointer}.hero .vref,.me .bub .vref,.chip.me .vref{color:inherit}
 #vsheet{position:fixed;top:0;left:0;right:0;bottom:var(--kb,0px);background:rgba(36,52,56,.45);z-index:60;display:none;align-items:flex-end;justify-content:center}#vsheet.on{display:flex}
 #vsheet .vb{background:#fff;width:100%;max-width:430px;max-height:min(78dvh,100%);border-radius:22px 22px 0 0;display:flex;flex-direction:column;box-shadow:0 -6px 24px rgba(22,52,56,.18);animation:vup .22s ease-out}
 @keyframes vup{from{transform:translateY(40px);opacity:.4}}#vsheet .vh{padding:14px 18px 10px;border-bottom:1px solid #E2E7E4;display:flex;align-items:flex-start;gap:10px}
@@ -43,7 +43,7 @@ document.body.appendChild(sh);sh.addEventListener('click',e=>{if(e.target===sh)v
 window.vClose=()=>sh.classList.remove('on');
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let seq=0;
-window.vOpen=async function(ref){const p=parse(cleanRef?cleanRef(ref):ref);if(!p){window.open(bibleUrl(ref),'_blank');return}
+window.vOpen=async function(ref){const raw=String(ref==null?'':ref).trim();const p=parse(cleanRef?cleanRef(raw):raw);if(!p){if(!raw){$('#vtit').textContent='Passage not set';$('#vtr').textContent='';$('#vfull').removeAttribute('href');$('#vbody').innerHTML='<div class="ve">No passage is set for this gathering yet. A host can add one by editing the gathering.</div>';sh.classList.add('on');return}window.open(bibleUrl(raw),'_blank');return}
  const want=(typeof tr!='undefined'&&tr)||'BSB';const my=++seq;
  $('#vtit').textContent=p.label;$('#vtr').textContent=want+' · loading…';$('#vfull').href=bibleUrl(p.label.replace(/:.*/,'').replace(/\s?[-–]\s?\d+$/,''));
  $('#vbody').innerHTML='<div class="sk"></div><div class="sk" style="width:85%"></div><div class="sk" style="width:92%"></div><div class="sk" style="width:60%"></div>';sh.classList.add('on');

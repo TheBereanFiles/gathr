@@ -37,7 +37,7 @@ async function setCode(rot){const v=$('#ncode').value.trim();if(v.length<4)retur
 function revokeCode(id){const c=ACC.codes.find(x=>x.id==id);ACC={codes:ACC.codes.filter(x=>x.id!=id)};if(c&&c.h==localStorage.gathr_code_h)localStorage.gathr_code_h=ACC.codes[0].h;rg();tick();toast('Code revoked')}
 // ---- install hint (same banner; only the 2-step text differs) ----
 document.head.insertAdjacentHTML('beforeend',`<style>#ihint{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav-h, 76px) + 8px + var(--kb, 0px));width:calc(100% - 24px);max-width:406px;z-index:31;background:#243438;color:#fff;border-radius:16px;padding:12px 14px;font:14px Inter;display:flex;gap:10px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.25)}#ihint button{background:none;border:none;color:#fff;font-size:18px}#ihint .ib{background:#F2B18A;color:#243438;border-radius:10px;padding:7px 10px;font:700 13px Inter}html.kb #ihint,body:has(.panel.on) #ihint,body:has(.sheet.on) #ihint{display:none}</style>`);
-function deep(v){if(v=='cal')openCal();else if(v=='chat')go('stories');else if(v=='passage'){go('home');readRef(G?G.pass:curPass())}else go('home')}
+function deep(v){if(v=='cal')openCal();else if(v=='chat')go('stories');else if(v=='passage'){go('home');const p=G?String(G.pass||'').trim():'';readRef(p||(!G&&typeof curPass=='function'?curPass():''))}else go('home')}
 const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
 let bip=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();bip=e;showHint()});
 function showHint(){if(standalone||localStorage.gathr_nohint||$('#ihint'))return;const ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform=='MacIntel'&&navigator.maxTouchPoints>1);
