@@ -1,4 +1,4 @@
-const C='gathr-v21';
+const C='gathr-v22';
 const A=['./','./index.html','./common.js','./qr.js','./sync.js','./verse.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/apple-touch-icon.png','./icons/maskable-192.png','./icons/maskable-512.png'];
 function fresh(url){return fetch(url,{cache:'reload',credentials:'same-origin'}).then(r=>{if(!r.ok)throw new Error(url+' '+r.status);return r})}
 self.addEventListener('install',e=>{
