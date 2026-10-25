@@ -4,6 +4,7 @@ const OWNER_GID='gathr-zk-m7Qx2pLk-v1';
 const _qs=new URLSearchParams(location.search);
 const PREV_GID=localStorage.getItem('gathr_gid')||'';
 function validGid(s){return !!s&&/^[A-Za-z0-9_-]{6,80}$/.test(s)}
+function validMt(s){return !!s&&/^[A-Za-z0-9_-]{20,80}$/.test(s)}
 function guestEncode(obj){const bytes=new TextEncoder().encode(JSON.stringify(obj));let bin='';for(let i=0;i<bytes.length;i++)bin+=String.fromCharCode(bytes[i]);return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
 function guestDecode(s){if(!s||s.length>1800||!/^[A-Za-z0-9_-]+$/.test(s))return null;try{let b=s.replace(/-/g,'+').replace(/_/g,'/');while(b.length%4)b+='=';const bin=atob(b);const bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);const o=JSON.parse(new TextDecoder().decode(bytes));if(!o||typeof o!=='object'||Array.isArray(o))return null;const out={};if(typeof o.p==='string'&&o.p.trim())out.p=o.p.trim().slice(0,80);if(typeof o.a==='string'&&o.a.trim())out.a=o.a.trim().slice(0,120);if(typeof o.d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(o.d))out.d=o.d;if(typeof o.t==='string'&&/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(o.t))out.t=o.t;if(Array.isArray(o.f)){const f=o.f.map(x=>typeof x==='string'?x.trim().slice(0,40):'').filter(Boolean).slice(0,12);if(f.length)out.f=f}return out}catch(e){return null}}
 function readGuestMode(){const raw=(location.hash||'').replace(/^#/,'');if(!raw.startsWith('guest='))return null;const s=raw.slice(6);if(!s)return {bad:1};return guestDecode(s)||{bad:1}}
@@ -13,11 +14,15 @@ const GUEST=readGuestMode();
 const INVITE_APP=!GUEST&&(_qs.get('invite')||'')==='app';
 const JOIN_ID=!GUEST&&!INVITE_APP&&validGid(_qs.get('join')||'')?_qs.get('join'):'';
 const _qg=!GUEST&&!INVITE_APP&&validGid(_qs.get('g')||'')?_qs.get('g'):'';
+const MEMBER_TOKEN=!GUEST&&!INVITE_APP&&validMt(_qs.get('m')||'')?_qs.get('m'):'';
 // An unknown ?g= is ignored. It must not load a group this phone does not already belong to.
+// A home-screen launch is the exception: ?g= plus a member token. The token is checked
+// against the group after it loads, and a bad token never adds a person.
 const QUERY_G=_qg&&groupList().some(g=>g.id===_qg)?_qg:'';
+const HOME_G=_qg&&MEMBER_TOKEN&&!QUERY_G?_qg:'';
 const SAVED=!GUEST&&!INVITE_APP&&validGid(PREV_GID)?PREV_GID:'';
-const GID=GUEST?'':(JOIN_ID||QUERY_G||SAVED||'');
-if(!GUEST&&GID&&!JOIN_ID&&!INVITE_APP)localStorage.gathr_gid=GID;
+const GID=GUEST?'':(JOIN_ID||HOME_G||QUERY_G||SAVED||'');
+if(!GUEST&&GID&&!HOME_G&&!JOIN_ID&&!INVITE_APP)localStorage.gathr_gid=GID;
 const GURL=GID?GSTORE+encodeURIComponent(GID):'';
 let groupName='';
 function appPath(){let path=location.pathname;if(path.endsWith('/index.html'))path=path.slice(0,-'index.html'.length);else if(!path.endsWith('/'))path+='/';return new URL(path,location.origin)}
@@ -46,7 +51,7 @@ function gateCheck(getAcc,onOpen){const h=localStorage.gathr_code_h;let g=docume
  if(h&&activeHashes(getAcc()).includes(h)){if(g)g.remove();document.documentElement.classList.remove('locked');onOpen&&onOpen();return true}
  const msg=h?'Access denied: this code is no longer active':'';if(h)localStorage.removeItem('gathr_code_h');
  document.documentElement.classList.add('locked');
- if(!g){g=document.createElement('div');g.id='gate';const gateLead=INVITE_APP?'Enter the access code to open Gathr. Then you can start your own group.':(JOIN_ID?'Enter the access code to open Gathr. Then you can ask to join this group.':'Enter the access code to open Gathr.');g.innerHTML=`<div class="gin"><div style="font-size:44px">🏡</div><h2>Gathr</h2><p>${gateLead}</p><input id="gcode" autocomplete="off" autocapitalize="off" placeholder="Access code"><button id="gbtn">Unlock</button><div id="gmsg"></div></div>`;document.body.appendChild(g);
+ if(!g){g=document.createElement('div');g.id='gate';const gateLead=INVITE_APP?'Enter the access code to open Gathr. Then you can start your own group.':(JOIN_ID?'Enter the access code to open Gathr. Then you can ask to join this group.':(HOME_G?'Enter the access code to open Gathr. Then this opens your group.':'Enter the access code to open Gathr.'));g.innerHTML=`<div class="gin"><div style="font-size:44px">🏡</div><h2>Gathr</h2><p>${gateLead}</p><input id="gcode" autocomplete="off" autocapitalize="off" placeholder="Access code"><button id="gbtn">Unlock</button><div id="gmsg"></div></div>`;document.body.appendChild(g);
   const go=async()=>{const v=document.getElementById('gcode').value;const hv=await sha(v);if(activeHashes(getAcc()).includes(hv)){localStorage.gathr_code_h=hv;gateCheck(getAcc,onOpen)}else{document.getElementById('gmsg').textContent='Access denied'}};
   g.querySelector('#gbtn').onclick=go;g.querySelector('#gcode').onkeydown=e=>{if(e.key=='Enter')go()}}
  document.getElementById('gmsg').textContent=msg;return false}
