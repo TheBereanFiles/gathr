@@ -87,7 +87,6 @@ html.guest .app{display:none!important}
 .pb{flex:1;min-height:0;overflow:auto;padding:8px 14px 12px;-webkit-overflow-scrolling:touch}.panel:not(:has(> .pf:not([hidden]))) > .pb{padding-bottom:calc(16px + env(safe-area-inset-bottom))}
 .pf{flex:none;padding:10px 14px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--bg)}html.kb .pf,html.kb .panel:not(:has(> .pf:not([hidden]))) > .pb{padding-bottom:12px}
 .pill{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;text-transform:uppercase}.pub{background:#EEF1F2;color:#3F5257}.pri{background:#E4EDE5;color:var(--acc)}
-.ftopic{display:flex;justify-content:space-between;align-items:center;margin:14px 0 6px}
 </style></head><body><div class="app">
 <header><div class="row" style="justify-content:space-between;align-items:flex-start;gap:8px"><div style="min-width:0;flex:1"><h1 id="title">This Week</h1><div class="sub" id="subt">Your gathering</div><button type="button" class="gswitch" id="gswitch" onclick="openGroups()"><span class="gname">Our Gathering</span><span class="ghost">Switch group</span></button></div><button type="button" class="explore" onclick="openG()">My Gathering</button></div></header>
 <main>
@@ -121,13 +120,12 @@ html.guest .app{display:none!important}
 <div class="sub" id="chscope" style="margin:10px 2px 0">Shared with this group.</div>
 <div class="banner" style="margin-top:10px">Private to your group.</div>
 <div id="chfeed"></div>
-<div class="card" id="forumsentry"><b>Public forums</b><p class="sub">Shared by every Gathr group. Anyone with the app can read a post.</p><button class="btn p" style="margin-top:10px" onclick="openF()">Open public forums</button></div></section>
+</section>
 </main>
 <nav id="nav"><button class="on" data-t="home"><span>🏠</span>This Week</button><button data-t="guide"><span>🧭</span>Host Guide</button><button data-t="studies"><span>📖</span>Studies</button><button data-t="stories" id="navchat" aria-label="Chat"><span>💬</span><i id="navbadge" class="nbadge" hidden aria-hidden="true"></i>Chat</button></nav>
 <div class="sheet" id="sheet" onclick="if(event.target===this)closeS()"><div class="in"><button class="x" onclick="closeS()">✕</button><div id="sc"></div></div></div>
 <div class="comp" id="comp"><button class="tg" id="tgS" onclick="tgs()">📖 Share a story</button><input id="stt" placeholder="Story title"><div class="inp"><input id="cmi" placeholder="Message # Our Gathering"><button class="send" onclick="cpost()">➤</button></div></div>
 <div class="panel" id="thr"><div class="ph"><button onclick="closeP('thr')">‹</button><div><b>Thread</b><div class="sub" id="thrsub"># Our Gathering</div></div></div><div class="pb" id="thb"></div><div class="pf"><div class="inp" style="margin:0"><input id="thi" placeholder="Reply in thread..."><button class="send" onclick="treply()">➤</button></div></div></div>
-<div class="panel" id="frm"><div class="ph"><button onclick="closeP('frm')">‹</button><div><b>🌍 Public Forums</b><div class="sub">Shared by every Gathr group</div></div></div><div class="pb" id="frb"></div><div class="pf" id="frf" hidden></div></div>
 <div class="panel" id="grp"><div class="ph"><button onclick="closeP('grp')">‹</button><div><b>👥 My Gathering</b><div class="sub" id="grpsub">Our Gathering · invite-only</div></div></div><div class="pb" id="grb"></div></div>
 <div class="panel" id="cal"><div class="ph"><button type="button" onclick="calBack()" aria-label="Back to This Week">‹</button><div style="flex:1"><b id="calT">Calendar</b><div class="sub" id="calS"></div></div></div><div class="pb" id="calB"></div><div class="pf" id="calAdd" hidden></div></div>
 <div class="toast" id="toast"></div></div>
@@ -182,24 +180,6 @@ function closeP(id){$('#'+id).classList.remove('on');paintChatBadge()}
 let sm=false;function tgs(){sm=!sm;$('#tgS').classList.toggle('on',sm);$('#stt').style.display=sm?'block':'none';$('#cmi').placeholder=sm?'Tell your story...':'Message # '+gLabel()}
 function cpost(){const v=$('#cmi').value.trim();if(!v)return;const m=stampChat({u:myName(),t:"Just now",x:v,r:[]});if(sm)m.st=$('#stt').value.trim()||"My story";ch.push(m);$('#cmi').value='';$('#stt').value='';if(sm)tgs();rch(ch.length-1);const sc=document.querySelector('main');if(sc)sc.scrollTop=sc.scrollHeight;if(typeof tick=='function')tick();toast('Sent to your group')}
 const go0=go;go=function(t){go0(t);$('#comp').classList.toggle('on',t==='stories');paintChatBadge()};
-// forums (shared across groups on textdb)
-const FORUMS=[['disciple','🌱 Disciple-making'],['host','🏠 Hosting tips'],['gospel','🗣️ Gospel conversations'],['prayer','🙏 Prayer requests']];
-let forumPosts=[],forumOpen=null;
-function forumList(raw){return (raw&&Array.isArray(raw.posts))?raw.posts.filter(p=>p&&p.id):[]}
-async function forumFetch(){const r=await fetch(GSTORE+'gathr-public-forums-v1?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('forum '+r.status);const t=(await r.text()).trim();let d=null;try{d=t?await ungz(t):null}catch(e){d=null}forumPosts=forumList(d);return forumPosts}
-function mergeForum(remote,local){const map=new Map();for(const p of [...remote,...local]){if(!p||!p.id)continue;const old=map.get(p.id);if(!old){map.set(p.id,{...p,r:[...(p.r||[])]});continue}const rs=[...(old.r||[])];for(const rep of (p.r||[])){if(rep&&!rs.some(x=>x&&x.u===rep.u&&x.x===rep.x&&x.t===rep.t))rs.push(rep)}map.set(p.id,{...old,r:rs})}return [...map.values()]}
-async function forumSave(){const local=forumPosts.slice();const r0=await fetch(GSTORE+'gathr-public-forums-v1?t='+Date.now(),{cache:'no-store'});if(!r0.ok)throw Error('forum '+r0.status);const t=(await r0.text()).trim();let remote=[];try{remote=forumList(t?await ungz(t):null)}catch(e){remote=[]}forumPosts=mergeForum(remote,local);const r=await fetch(GSTORE+'gathr-public-forums-v1',{method:'POST',headers:{'content-type':'text/plain'},body:await gz(JSON.stringify({ts:Date.now(),posts:forumPosts}))});if(!r.ok)throw Error('forum put '+r.status)}
-function rf2(){const b=$('#frb');const foot=$('#frf');if(!b)return;if(forumOpen){const p=forumPosts.find(x=>x.id===forumOpen);if(!p){forumOpen=null;return rf2()}
- b.innerHTML=`<button class="chip" onclick="forumOpen=null;rf2()">‹ Forums</button><div class="card" style="margin-top:10px"><span class="pill pub">Public</span> <b>${escH(p.title)}</b><div class="sub">${escH(p.u||'')} · ${escH(p.t||'')}</div><p style="margin-top:8px">${escH(p.x||'')}</p></div>`+(p.r||[]).map(r=>`<div class="msg">${av(r.u||'?')}<div class="bub"><b>${escH(r.u||'')}</b>${escH(r.x||'')}</div></div>`).join('');
- if(foot){foot.hidden=false;foot.innerHTML=`<div class="inp" style="margin:0"><input id="frr" placeholder="Reply"><button class="send" onclick="forumReply(forumOpen)">➤</button></div>`}
- b.scrollTop=b.scrollHeight;return}
- if(foot){foot.hidden=true;foot.innerHTML=''}
- b.innerHTML=`<div class="banner">Public forums are shared by every Gathr group. Anyone with the app can read and post.</div>`+FORUMS.map(([id,name])=>{const list=forumPosts.filter(p=>p.forum===id).slice(-15);
-  return `<div class="ftopic"><b>${name}</b></div>`+(list.length?list.map(p=>{const idx=forumPosts.indexOf(p);return `<div class="card" style="margin-bottom:8px;cursor:pointer" onclick="forumOpen=forumPosts[${idx}].id;rf2()"><span class="pill pub">Public</span> <span class="sub">${escH(p.u||'')}</span><div style="font-size:14px;font-weight:600;margin-top:5px">${escH(p.title||'')}</div><div class="sub" style="margin-top:4px">💬 ${(p.r||[]).length} repl${(p.r||[]).length===1?'y':'ies'}</div></div>`}).join(''):'<div class="card sub" style="margin-bottom:8px">No posts yet. Be the first to post.</div>')+`<div class="card"><input class="fi" id="ft${id}" placeholder="Title"><input class="fi" id="fx${id}" placeholder="Write a post"><button class="btn p" onclick="forumPost('${id}')">Post</button></div>`}).join('')}
-async function forumPost(id){const titleEl=document.getElementById('ft'+id),bodyEl=document.getElementById('fx'+id);const title=(titleEl&&titleEl.value||'').trim(),body=(bodyEl&&bodyEl.value||'').trim();if(!body)return toast('Write a post first');if(!confirm('Post this publicly? Anyone with Gathr can read it.'))return;const mine={id:'p'+Date.now(),forum:id,u:myName(),title:title||'Post',x:body,t:new Date().toLocaleString(),r:[]};try{await forumFetch();forumPosts.push(mine);await forumSave();rf2();toast('Posted to the forum')}catch(e){toast('Could not post. Try again.')}}
-async function forumReply(pid){const v=($('#frr')&&$('#frr').value||'').trim();if(!v)return;if(!confirm('Reply publicly? Anyone with Gathr can read it.'))return;try{await forumFetch();const p=forumPosts.find(x=>x.id===pid);if(!p)return;p.r=p.r||[];p.r.push({u:myName(),x:v,t:new Date().toLocaleString()});await forumSave();forumOpen=pid;rf2();toast('Reply posted')}catch(e){toast('Could not reply. Try again.')}}
-async function openF(){forumOpen=null;$('#frm').classList.add('on');try{await forumFetch()}catch(e){toast('Could not load forums')}rf2()}
-setInterval(()=>{if(!$('#frm.on')||(document.activeElement&&$('#frm').contains(document.activeElement)))return;forumFetch().then(()=>rf2()).catch(()=>{})},12000);
 // group (invite-only)
 function gidTag(){let h=2166136261;const s=String(typeof GID=='undefined'?'':GID);for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(16)}
 function inviteUrl(){const u=appPath();if(GID)u.searchParams.set('join',GID);return u.href}

@@ -1,4 +1,4 @@
-const C='gathr-v34';
+const C='gathr-v35';
 const A=['./','./index.html','./common.js','./qr.js','./sync.js','./verse.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/apple-touch-icon.png','./icons/maskable-192.png','./icons/maskable-512.png','./fonts/inter-400.woff2','./fonts/inter-500.woff2','./fonts/inter-600.woff2','./fonts/inter-700.woff2','./fonts/fraunces-600.woff2','./fonts/fraunces-700.woff2'];
 function fresh(url){return fetch(url,{cache:'reload',credentials:'same-origin'}).then(r=>{if(!r.ok)throw new Error(url+' '+r.status);return r})}
 self.addEventListener('install',e=>{
